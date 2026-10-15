@@ -1,0 +1,28 @@
+# MiniCPM executor and judge share one vLLM instance on a single DGX Spark.
+recipe_version: "1"
+name: MiniCPM5-2B (DGX Spark)
+description: MiniCPM5-2B with request-level thinking control for Switchyard
+model: openbmb/MiniCPM5-2B
+# Standard image tag prepared by --setup from eugr/spark-vllm:latest.
+container: vllm-node
+solo_only: true
+cluster_only: false
+mods: []
+
+defaults:
+  host: 0.0.0.0
+  port: 8000
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.6
+
+command: |
+  vllm serve openbmb/MiniCPM5-2B \
+    --served-model-name openbmb/MiniCPM5-2B minicpm5-judge \
+    --host {host} \
+    --port {port} \
+    --tensor-parallel-size {tensor_parallel} \
+    --gpu-memory-utilization {gpu_memory_utilization} \
+    --reasoning-parser qwen3 \
+    --enable-auto-tool-choice \
+    --tool-call-parser minicpm5 \
+    --default-chat-template-kwargs '{{"enable_thinking":false}}'
